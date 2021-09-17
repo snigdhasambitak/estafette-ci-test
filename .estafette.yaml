@@ -33,11 +33,11 @@ stages:
     repositories:
     - eu.gcr.io/travix-com
 
-  push-to-docker-registry:
-    image: extensions/docker:stable
-    action: push
-    repositories:
-    - eu.gcr.io/travix-com
+  # push-to-docker-registry:
+  #   image: extensions/docker:stable
+  #   action: push
+  #   repositories:
+  #   - eu.gcr.io/travix-com
 
   slack-notify:
     image: extensions/slack-build-status:stable
