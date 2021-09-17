@@ -1,0 +1,154 @@
+# https://estafette.io/usage/manifest/
+labels:
+  team: swat
+  language: java
+  app: spring-boot-demo
+
+version:
+  semver:
+    major: 5
+    minor: 2
+
+stages:
+  snyk:
+    image: extensions/snyk:stable
+    scan: false
+  package:
+    image: eu.gcr.io/travix-com/java-build:stable-jdk-11
+    action: build-service
+    updateDependency: true
+    updateParent: true
+    parentMaxVersion: 5.2
+
+  analysis:
+    image: eu.gcr.io/travix-com/java-build:stable-jdk-11
+    action: analysis
+    when:
+      status == 'succeeded' && branch == 'master'
+
+  bake:
+    image: extensions/docker:stable
+    action: build
+    # path: ./publish
+    repositories:
+    - eu.gcr.io/travix-com
+
+  push-to-docker-registry:
+    image: extensions/docker:stable
+    action: push
+    repositories:
+    - eu.gcr.io/travix-com
+
+  slack-notify:
+    image: extensions/slack-build-status:stable
+    workspace: travix
+    channels:
+    - '#builds-${ESTAFETTE_LABEL_TEAM}'
+    when:
+      status == 'failed'
+
+# releases:
+#   dev-common:
+#     triggers:
+#     - pipeline:
+#         name: self
+#         branch: .+
+#     stages:
+#       deploy:
+#         image: extensions/gke:stable
+#         visibility: private
+#         container:
+#           port: 8080
+#           env:
+#             JAVA_OPTS: "-Dspring.profiles.active=dev"
+#           cpu:
+#             request: 300m
+#             limit: 500m
+#           memory:
+#             request: 512Mi
+#             limit: 1Gi
+#           liveness:
+#             path: /health
+#             delay: 60
+#           readiness:
+#             path: /health
+#           metrics:
+#             path: /prometheus
+#
+#       slack-notify:
+#         image: extensions/slack-build-status:stable
+#         workspace: travix
+#         channels:
+#         - '#releases-${ESTAFETTE_LABEL_TEAM}'
+#         when:
+#           status == 'failed'
+#
+#   stg-common:
+#     stages:
+#       deploy:
+#         image: extensions/gke:stable
+#         visibility: private
+#         container:
+#           port: 8080
+#           env:
+#             JAVA_OPTS: "-Dspring.profiles.active=stg"
+#           cpu:
+#             request: 300m
+#             limit: 500m
+#           memory:
+#             request: 512Mi
+#             limit: 1Gi
+#           liveness:
+#             path: /health
+#             delay: 60
+#           readiness:
+#             path: /health
+#           metrics:
+#             path: /prometheus
+#
+#       slack-notify:
+#         image: extensions/slack-build-status:stable
+#         workspace: travix
+#         channels:
+#         - '#releases-${ESTAFETTE_LABEL_TEAM}'
+#         when:
+#           status == 'failed'
+#
+#   prd-common:
+#     actions:
+#     - name: deploy-canary
+#     - name: deploy-stable
+#     - name: rollback-canary
+#       hideBadge: true
+#     - name: restart-stable
+#       hideBadge: true
+#     stages:
+#       deploy:
+#         image: extensions/gke:stable
+#         visibility: private
+#         container:
+#           port: 8080
+#           env:
+#             JAVA_OPTS: "-Dspring.profiles.active=prd"
+#           cpu:
+#             request: 300m
+#             limit: 500m
+#           memory:
+#             request: 512Mi
+#             limit: 1Gi
+#           liveness:
+#             path: /health
+#             delay: 60
+#           readiness:
+#             path: /health
+#           metrics:
+#             path: /prometheus
+#
+#       slack-notify:
+#         image: extensions/slack-build-status:stable
+#         workspace: travix
+#         channels:
+#         - '#releases-${ESTAFETTE_LABEL_TEAM}'
+#         when:
+#           status == 'succeeded' ||
+#           status == 'failed'

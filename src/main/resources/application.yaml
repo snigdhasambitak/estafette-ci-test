@@ -1,0 +1,40 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /
+      cors:
+        allowed-methods: GET
+    prometheus:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: spring-boot-demo
+    export:
+      prometheus:
+        enabled: true
+
+server:
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: "/dev"
+      prefix: stdout
+      buffered: false
+      suffix:
+      file-date-format:
+      #  %t - Date and time, in Common Log Format
+      #  %a - Remote IP address
+      #  %{remote}p - port
+      #  %m - Request method (GET, POST, etc.)
+      #  %U - Requested URL path
+      #  %H - Request protocol
+      #  %s - HTTP status code of the response
+      #  %D - Time taken to process the request, in millis
+      #  %b - Bytes sent, excluding HTTP headers, or '-' if zero
+      #  %{length}r  - Request length
+      pattern: '%t %a:%{remote}p %m "%U" "%H" %s %D %b %{length}r %{Content-Length}i "%{host}i" "%{Referer}i" "%{User-Agent}i" "%{Content-Type}i" "%{X-Forwarded-Proto}i" "%{X-Forwarded-For}i"'
